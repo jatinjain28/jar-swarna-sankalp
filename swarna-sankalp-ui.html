@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jar · Swarna Sankalp — prototype</title>
+<style>
+:root{
+  /* sampled from the Jar app screenshots */
+  --violet:#4523FE;
+  --violet-lit:#6B4DFF;
+  --violet-deep:#2A0FA8;
+  --ink:#0B0A16;
+  --ink-2:#15132A;
+  --ink-3:#1E1B38;
+  --gold:#FFC93C;
+  --gold-lit:#FFE800;
+  --paper:#F3F1FF;
+  --dim:#9B96C4;
+  --mint:#35D08A;
+  --coral:#FF6B6B;
+  --line:rgba(255,255,255,.10);
+  --glass:rgba(255,255,255,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#05040C;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+     display:flex;justify-content:center;padding:22px;color:var(--paper)}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+
+.app{width:393px;height:852px;background:var(--ink);border-radius:0;overflow:hidden;position:relative}
+
+/* ---------- status + chrome ---------- */
+.status{height:44px;display:flex;align-items:center;justify-content:space-between;
+        padding:0 24px;font-size:13px;font-weight:600;color:#fff;position:relative;z-index:5}
+.island{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:26px;
+        border-radius:14px;background:#000;z-index:6}
+
+.screen{display:none;height:808px;overflow-y:auto;padding-bottom:96px;position:relative}
+.screen.on{display:block}
+.screen::-webkit-scrollbar{display:none}
+
+.nav{display:flex;align-items:center;gap:12px;padding:6px 20px 14px}
+.nav .back{width:34px;height:34px;border-radius:50%;background:var(--glass);display:grid;place-items:center;font-size:19px}
+.nav h1{font-size:18px;font-weight:700;letter-spacing:-.2px}
+
+.pad{padding:0 20px}
+.spacer{height:14px}
+
+/* ---------- tabbar ---------- */
+.tabs{position:absolute;bottom:0;left:0;right:0;height:74px;background:rgba(11,10,22,.94);
+      backdrop-filter:blur(20px);border-top:1px solid var(--line);
+      display:flex;justify-content:space-around;padding-top:11px;z-index:10}
+.tab{text-align:center;font-size:10px;color:#6E6899;width:25%}
+.tab .g{display:block;font-size:19px;margin-bottom:3px;opacity:.75}
+.tab.on{color:var(--gold)}
+.tab.on .g{opacity:1}
+
+/* ---------- sankalp entry card ---------- */
+.entry{margin:0 20px;border-radius:22px;padding:20px;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,var(--violet) 0%,var(--violet-deep) 100%);
+  box-shadow:0 18px 40px rgba(69,35,254,.34)}
+.entry:after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;
+  right:-70px;top:-80px;background:rgba(255,201,60,.20)}
+.entry .kicker{font-size:11px;font-weight:800;letter-spacing:1.4px;color:var(--gold);position:relative}
+.entry h2{font-size:25px;font-weight:800;margin:7px 0 6px;letter-spacing:-.5px;position:relative}
+.entry p{font-size:13px;line-height:1.5;color:rgba(255,255,255,.82);position:relative;max-width:250px}
+.entry .cta{margin-top:15px;background:var(--gold);color:#241A00;font-weight:800;font-size:14px;
+  padding:12px 20px;border-radius:14px;display:inline-block;position:relative}
+
+/* ---------- goal template grid ---------- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:0 20px}
+.goal{background:var(--ink-2);border:1px solid var(--line);border-radius:18px;padding:15px;text-align:left;
+      transition:transform .2s cubic-bezier(.2,.8,.3,1),border-color .2s,background .2s}
+.goal:active{transform:scale(.97)}
+.goal.sel{border-color:var(--gold);background:linear-gradient(160deg,rgba(255,201,60,.14),var(--ink-2))}
+.goal .em{font-size:24px;display:block;margin-bottom:9px}
+.goal b{font-size:14px;display:block;letter-spacing:-.2px}
+.goal span{font-size:11.5px;color:var(--dim);display:block;margin-top:4px;line-height:1.4}
+
+.sec{font-size:12px;font-weight:800;letter-spacing:1.2px;color:var(--dim);padding:0 20px;margin:20px 0 11px}
+
+/* ---------- plan ---------- */
+.plan-hero{margin:0 20px;background:var(--ink-2);border:1px solid var(--line);border-radius:22px;padding:20px}
+.plan-hero .lbl{font-size:11.5px;color:var(--dim);font-weight:700;letter-spacing:.8px}
+.amt{font-size:44px;font-weight:800;letter-spacing:-2px;margin:4px 0 2px;color:var(--gold);
+     font-variant-numeric:tabular-nums}
+.amt small{font-size:15px;font-weight:700;color:var(--dim);letter-spacing:0}
+.why{margin-top:14px;background:rgba(69,35,254,.16);border:1px solid rgba(107,77,255,.34);
+     border-radius:13px;padding:12px 13px;font-size:12.5px;line-height:1.55;color:#CFC8FF}
+.why b{color:#fff}
+
+.field{margin:0 20px 12px;background:var(--ink-2);border:1px solid var(--line);border-radius:16px;
+       padding:13px 15px;display:flex;align-items:center;justify-content:space-between}
+.field .k{font-size:12.5px;color:var(--dim)}
+.field .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+
+.chips{display:flex;gap:8px;padding:0 20px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--ink-2);border-radius:999px;padding:9px 15px;
+      font-size:13px;font-weight:600;transition:all .2s}
+.chip.on{background:var(--gold);color:#241A00;border-color:var(--gold);font-weight:800}
+
+.cta-full{margin:18px 20px 0;display:block;width:calc(100% - 40px);background:var(--violet);
+  padding:15px;border-radius:16px;font-size:15px;font-weight:800;text-align:center;
+  box-shadow:0 12px 26px rgba(69,35,254,.4)}
+.cta-ghost{margin:10px 20px 0;display:block;width:calc(100% - 40px);background:transparent;
+  border:1px solid var(--line);padding:14px;border-radius:16px;font-size:14px;font-weight:600;
+  text-align:center;color:var(--dim)}
+
+/* ---------- progress ring ---------- */
+.ringwrap{display:flex;justify-content:center;padding:6px 0 4px;position:relative}
+.ring{position:relative;width:196px;height:196px}
+.ring svg{transform:rotate(-90deg)}
+.ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .pct{font-size:38px;font-weight:800;letter-spacing:-1.5px;font-variant-numeric:tabular-nums}
+.ring .of{font-size:12px;color:var(--dim);margin-top:2px}
+.trackline{transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.3,1)}
+
+.today{margin:14px 20px 0;border-radius:20px;padding:17px;
+  background:linear-gradient(145deg,rgba(53,208,138,.16),rgba(21,19,42,.9));
+  border:1px solid rgba(53,208,138,.34)}
+.today.warn{background:linear-gradient(145deg,rgba(255,201,60,.16),rgba(21,19,42,.9));
+  border-color:rgba(255,201,60,.4)}
+.today.late{background:linear-gradient(145deg,rgba(255,107,107,.15),rgba(21,19,42,.9));
+  border-color:rgba(255,107,107,.38)}
+.today .t{font-size:11.5px;font-weight:800;letter-spacing:1px;color:var(--mint)}
+.today.warn .t{color:var(--gold)}
+.today.late .t{color:var(--coral)}
+.today .m{font-size:16px;font-weight:700;margin:7px 0 5px;line-height:1.35}
+.today .s{font-size:12.5px;color:var(--dim);line-height:1.5}
+
+.stat-row{display:flex;gap:10px;padding:14px 20px 0}
+.stat{flex:1;background:var(--ink-2);border:1px solid var(--line);border-radius:15px;padding:13px}
+.stat b{display:block;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+.stat span{font-size:10.5px;color:var(--dim);display:block;margin-top:3px;line-height:1.35}
+
+/* ---------- recovery options ---------- */
+.opt{margin:0 20px 11px;background:var(--ink-2);border:1px solid var(--line);border-radius:18px;
+     padding:15px;display:flex;gap:13px;align-items:flex-start;text-align:left;width:calc(100% - 40px);
+     transition:border-color .2s,background .2s}
+.opt.sel{border-color:var(--gold);background:linear-gradient(150deg,rgba(255,201,60,.13),var(--ink-2))}
+.opt .ic{width:38px;height:38px;border-radius:12px;background:rgba(69,35,254,.3);display:grid;
+         place-items:center;font-size:18px;flex:none}
+.opt b{font-size:14.5px;display:block}
+.opt span{font-size:12px;color:var(--dim);display:block;margin-top:4px;line-height:1.45}
+.opt .res{font-size:12px;color:var(--gold);font-weight:700;margin-top:6px;display:block}
+
+/* ---------- completion ---------- */
+.done-hero{margin:10px 20px 0;border-radius:24px;padding:26px 20px;text-align:center;
+  background:linear-gradient(160deg,var(--violet),var(--violet-deep));position:relative;overflow:hidden}
+.done-hero:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;
+  left:50%;top:-130px;transform:translateX(-50%);background:rgba(255,201,60,.24)}
+.done-hero .big{font-size:46px;position:relative}
+.done-hero h3{font-size:22px;font-weight:800;margin:8px 0 6px;position:relative}
+.done-hero p{font-size:13px;color:rgba(255,255,255,.82);position:relative;line-height:1.5}
+.redeem{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px}
+.rd{background:var(--ink-2);border:1px solid var(--line);border-radius:17px;padding:15px;text-align:left}
+.rd .em{font-size:21px;display:block;margin-bottom:8px}
+.rd b{font-size:13.5px;display:block}
+.rd span{font-size:11px;color:var(--dim);display:block;margin-top:3px;line-height:1.4}
+.note{margin:14px 20px 0;font-size:11.5px;color:var(--dim);line-height:1.55;text-align:center}
+
+/* ---------- demo controls (outside the phone) ---------- */
+.side{margin-left:26px;width:290px;padding-top:30px}
+.side h4{font-size:13px;letter-spacing:1.2px;color:var(--dim);font-weight:800;margin-bottom:12px}
+.side .db{display:block;width:100%;text-align:left;background:#12102A;border:1px solid rgba(255,255,255,.09);
+  border-radius:13px;padding:12px 14px;margin-bottom:9px;font-size:13px;transition:all .2s}
+.side .db:hover{border-color:var(--gold);background:#191534}
+.side .db small{display:block;color:var(--dim);font-size:11px;margin-top:3px;line-height:1.4}
+.side .hint{font-size:11.5px;color:#5D5885;line-height:1.6;margin-top:14px}
+@media(max-width:780px){.side{display:none}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="island"></div>
+  <div class="status"><span>12:31</span><span>5G ▮▮▮ ▰</span></div>
+
+  <!-- ============ 1 · ENTRY (Jar home context) ============ -->
+  <section class="screen on" id="s-home">
+    <div class="nav" style="justify-content:space-between">
+      <h1 style="font-size:17px">Home</h1>
+      <span style="font-size:12px;color:var(--dim)">₹4,068 saved</span>
+    </div>
+
+    <div class="entry">
+      <div class="kicker">NEW · SWARNA SANKALP</div>
+      <h2>Save for something,<br>not just anything</h2>
+      <p>Pick a goal, and Jar works out what you can actually keep up — then adjusts when your month changes.</p>
+      <button class="cta" onclick="go('s-goals')">Create a goal</button>
+    </div>
+
+    <div class="sec">YOUR SAVING PLANS</div>
+    <div class="grid">
+      <div class="goal"><span class="em">📅</span><b>Save Daily</b><span>From ₹10/day</span></div>
+      <div class="goal"><span class="em">🗓️</span><b>Save Weekly</b><span>From ₹50/week</span></div>
+      <div class="goal"><span class="em">📆</span><b>Save Monthly</b><span>From ₹100/month</span></div>
+      <div class="goal"><span class="em">⚡</span><b>Save Instantly</b><span>Any amount</span></div>
+    </div>
+    <div class="note">Swarna Sankalp sits on top of these. It does not replace them.</div>
+
+    <div class="tabs">
+      <div class="tab on"><span class="g">⌂</span>Home</div>
+      <div class="tab"><span class="g">◎</span>Jewellery</div>
+      <div class="tab"><span class="g">🎁</span>Rewards</div>
+      <div class="tab"><span class="g">▤</span>Transaction</div>
+    </div>
+  </section>
+
+  <!-- ============ 2 · GOAL PICKER ============ -->
+  <section class="screen" id="s-goals">
+    <div class="nav"><button class="back" onclick="go('s-home')">‹</button><h1>What are you saving for?</h1></div>
+    <div class="sec" style="margin-top:2px">OCCASIONS COMING UP</div>
+    <div class="grid" id="goalGrid"></div>
+    <div class="sec">OR</div>
+    <div class="grid">
+      <button class="goal" style="grid-column:span 2" onclick="pick(99)">
+        <span class="em">✍️</span><b>Create your own goal</b>
+        <span>Name it, set a target and a date</span>
+      </button>
+    </div>
+    <div class="note">Templates are motivation. The plan behind them is the same engine.</div>
+  </section>
+
+  <!-- ============ 3 · PLAN ============ -->
+  <section class="screen" id="s-plan">
+    <div class="nav"><button class="back" onclick="go('s-goals')">‹</button><h1 id="planTitle">Your plan</h1></div>
+
+    <div class="plan-hero">
+      <div class="lbl">RECOMMENDED CONTRIBUTION</div>
+      <div class="amt" id="planAmt">₹83<small>/day</small></div>
+      <div class="why" id="planWhy"></div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="field"><span class="k">Target amount</span><span class="v" id="fTarget">₹7,500</span></div>
+    <div class="field"><span class="k">Target date</span><span class="v" id="fDate">6 Dec 2026</span></div>
+    <div class="field"><span class="k">Days remaining</span><span class="v" id="fDays">90</span></div>
+
+    <div class="sec">HOW OFTEN?</div>
+    <div class="chips" id="cadChips">
+      <button class="chip on" onclick="setCad('daily',this)">Daily</button>
+      <button class="chip" onclick="setCad('weekly',this)">Weekly</button>
+      <button class="chip" onclick="setCad('monthly',this)">Monthly</button>
+    </div>
+
+    <button class="cta-full" onclick="go('s-track')">Start this plan</button>
+    <button class="cta-ghost" onclick="go('s-goals')">Pick a different goal</button>
+    <div class="note">You can change the target, the date or the cadence at any time.</div>
+  </section>
+
+  <!-- ============ 4 · TRACK ============ -->
+  <section class="screen" id="s-track">
+    <div class="nav"><button class="back" onclick="go('s-plan')">‹</button><h1 id="trackTitle">Maa ke Liye Gold</h1></div>
+
+    <div class="ringwrap">
+      <div class="ring">
+        <svg width="196" height="196">
+          <circle cx="98" cy="98" r="84" stroke="rgba(255,255,255,.09)" stroke-width="15" fill="none"/>
+          <circle id="ringArc" class="trackline" cx="98" cy="98" r="84" stroke="url(#g1)" stroke-width="15"
+                  fill="none" stroke-linecap="round" stroke-dasharray="527.8" stroke-dashoffset="527.8"/>
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#FFC93C"/><stop offset="100%" stop-color="#FFE800"/>
+          </linearGradient></defs>
+        </svg>
+        <div class="mid"><span class="pct" id="ringPct">0%</span><span class="of" id="ringOf">₹0 of ₹7,500</span></div>
+      </div>
+    </div>
+
+    <div class="today" id="todayCard">
+      <div class="t" id="todayTag">ON TRACK</div>
+      <div class="m" id="todayMsg">₹83 today keeps you on track.</div>
+      <div class="s" id="todaySub">Same as your usual. Nothing has changed this week.</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><b id="stDone">₹2,400</b><span>saved so far</span></div>
+      <div class="stat"><b id="stLeft">₹5,100</b><span>still to go</span></div>
+      <div class="stat"><b id="stEta">6 Dec</b><span>projected finish</span></div>
+    </div>
+
+    <button class="cta-full" id="trackCta" onclick="go('s-done')">Save ₹83 now</button>
+    <div class="note">Adaptive pacing changes the ask, never the goal — unless you say so.</div>
+  </section>
+
+  <!-- ============ 5 · RECOVERY ============ -->
+  <section class="screen" id="s-recover">
+    <div class="nav"><button class="back" onclick="go('s-track')">‹</button><h1>Let's get back on track</h1></div>
+
+    <div class="today late" style="margin-top:2px">
+      <div class="t">BEHIND BY ₹580</div>
+      <div class="m">You missed 7 days. That's normal.</div>
+      <div class="s">Pick how you'd like to catch up. Doing nothing is also fine — the goal stays open.</div>
+    </div>
+
+    <div class="sec">YOUR OPTIONS</div>
+    <button class="opt" onclick="rec(0,this)">
+      <span class="ic">↗</span>
+      <span><b>Save a little more</b>
+        <span>Spread the ₹580 over the days you have left.</span>
+        <span class="res">₹83 → ₹90/day · same finish date</span></span>
+    </button>
+    <button class="opt" onclick="rec(1,this)">
+      <span class="ic">📅</span>
+      <span><b>Move the date</b>
+        <span>Keep the same daily amount, finish a little later.</span>
+        <span class="res">₹83/day · finish 13 Dec instead</span></span>
+    </button>
+    <button class="opt" onclick="rec(2,this)">
+      <span class="ic">✂️</span>
+      <span><b>Lower the target</b>
+        <span>Keep the habit, shrink the goal to what fits.</span>
+        <span class="res">₹7,500 → ₹6,900 · same date</span></span>
+    </button>
+    <button class="opt" onclick="rec(3,this)">
+      <span class="ic">⏸</span>
+      <span><b>Pause for now</b>
+        <span>Stop contributions without losing what you've saved.</span>
+        <span class="res">Resume whenever you're ready</span></span>
+    </button>
+
+    <button class="cta-full" onclick="go('s-track')">Confirm</button>
+    <div class="note">No guilt, no penalty, no auto-changes without your say-so.</div>
+  </section>
+
+  <!-- ============ 6 · COMPLETE ============ -->
+  <section class="screen" id="s-done">
+    <div class="nav"><button class="back" onclick="go('s-track')">‹</button><h1>Goal reached</h1></div>
+
+    <div class="done-hero">
+      <div class="big">🪔</div>
+      <h3>₹7,500 saved</h3>
+      <p>Maa ke Liye Gold — finished 4 days early.<br>90 days, 86 contributions.</p>
+    </div>
+
+    <div class="sec">WHAT NEXT? YOUR CHOICE</div>
+    <div class="redeem">
+      <button class="rd"><span class="em">🔁</span><b>Keep saving</b><span>Roll into a new goal</span></button>
+      <button class="rd"><span class="em">🥇</span><b>Digital gold</b><span>Hold it as 24K</span></button>
+      <button class="rd"><span class="em">🪙</span><b>Gold coin</b><span>Delivered home</span></button>
+      <button class="rd"><span class="em">💍</span><b>Jewellery</b><span>Browse designs</span></button>
+    </div>
+    <div class="note">Nothing is pre-selected and nothing expires. Continuing to save is a valid ending.</div>
+  </section>
+</div>
+
+<!-- demo rail, not part of the phone -->
+<div class="side">
+  <h4>TRY THE ADAPTIVE ENGINE</h4>
+  <button class="db" onclick="scenario('normal')">Normal month
+    <small>Capacity unchanged — the ask stays at ₹83.</small></button>
+  <button class="db" onclick="scenario('low')">Tighter week
+    <small>Recent capacity dropped — the ask shrinks, the goal doesn't.</small></button>
+  <button class="db" onclick="scenario('missed')">Missed 7 days
+    <small>Opens Goal Recovery instead of a failure message.</small></button>
+  <button class="db" onclick="scenario('payday')">Steady monthly pattern
+    <small>Suggests a cadence switch, with confirmation.</small></button>
+  <div class="hint">Every message here is generated from the same three inputs the PRD names: target, days remaining and recent contribution behaviour.</div>
+</div>
+
+<script>
+/* ---------------- state ---------------- */
+var TODAY = new Date(2026, 8, 7);           // 7 Sep 2026
+var GOALS = [
+  {em:'🌼', name:'Maa ke Liye Gold',  sub:'A gift for her',      target:7500,  days:90},
+  {em:'🪔', name:'Dhanteras',          sub:'Buy gold on the day', target:15000, days:64},
+  {em:'🧵', name:'Rakhi',              sub:'For your sister',     target:3000,  days:45},
+  {em:'💍', name:'Wedding fund',       sub:'Longer horizon',      target:60000, days:270},
+  {em:'🛡️', name:'Emergency gold',     sub:'A reserve you keep',  target:20000, days:180},
+  {em:'🎓', name:'Education',          sub:'A family milestone',  target:40000, days:365}
+];
+var state = { goal: GOALS[0], cadence: 'daily', mode: 'normal' };
+
+/* ---------------- helpers ---------------- */
+function inr(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
+function dateAfter(days){
+  var d = new Date(TODAY.getTime() + days*864e5);
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
+function perPeriod(){
+  var g = state.goal;
+  if(state.cadence==='daily')   return { amt: g.target/g.days,      unit:'/day',   n: g.days };
+  if(state.cadence==='weekly')  return { amt: g.target/(g.days/7),  unit:'/week',  n: Math.round(g.days/7) };
+  return { amt: g.target/(g.days/30), unit:'/month', n: Math.round(g.days/30) };
+}
+
+/* ---------------- goal grid ---------------- */
+var grid = document.getElementById('goalGrid');
+GOALS.forEach(function(g,i){
+  var b = document.createElement('button');
+  b.className = 'goal';
+  b.innerHTML = '<span class="em">'+g.em+'</span><b>'+g.name+'</b><span>'+g.sub+' · '+inr(g.target)+'</span>';
+  b.onclick = function(){ pick(i); };
+  grid.appendChild(b);
+});
+
+function pick(i){
+  state.goal = (i===99)
+    ? {em:'✍️', name:'My goal', sub:'Custom', target:10000, days:120}
+    : GOALS[i];
+  state.mode = 'normal';
+  renderPlan();
+  go('s-plan');
+}
+
+/* ---------------- plan ---------------- */
+function setCad(c, el){
+  state.cadence = c;
+  document.querySelectorAll('#cadChips .chip').forEach(function(x){ x.classList.remove('on'); });
+  el.classList.add('on');
+  renderPlan();
+}
+
+function renderPlan(){
+  var g = state.goal, p = perPeriod();
+  document.getElementById('planTitle').textContent = g.name;
+  document.getElementById('planAmt').innerHTML = inr(p.amt) + '<small>' + p.unit + '</small>';
+  document.getElementById('fTarget').textContent = inr(g.target);
+  document.getElementById('fDate').textContent   = dateAfter(g.days);
+  document.getElementById('fDays').textContent   = g.days;
+  document.getElementById('planWhy').innerHTML =
+    '<b>Why this number:</b> ' + inr(g.target) + ' over ' + g.days + ' days is ' +
+    inr(p.amt) + p.unit + '. You have saved on ' +
+    '<b>81% of days</b> in the last month, so daily is a cadence you already keep.';
+  renderTrack();
+}
+
+/* ---------------- track ---------------- */
+function renderTrack(){
+  var g = state.goal, p = perPeriod();
+  var saved = Math.round(g.target * 0.32);
+  var pct   = Math.round(saved / g.target * 100);
+
+  document.getElementById('trackTitle').textContent = g.name;
+  document.getElementById('ringPct').textContent = pct + '%';
+  document.getElementById('ringOf').textContent  = inr(saved) + ' of ' + inr(g.target);
+  document.getElementById('stDone').textContent  = inr(saved);
+  document.getElementById('stLeft').textContent  = inr(g.target - saved);
+  document.getElementById('stEta').textContent   = dateAfter(g.days).replace(/ \d{4}$/,'');
+
+  var arc = document.getElementById('ringArc');
+  var C = 2 * Math.PI * 84;
+  arc.style.strokeDashoffset = C;
+  setTimeout(function(){ arc.style.strokeDashoffset = C * (1 - pct/100); }, 60);
+
+  var card = document.getElementById('todayCard');
+  var tag  = document.getElementById('todayTag');
+  var msg  = document.getElementById('todayMsg');
+  var sub  = document.getElementById('todaySub');
+  card.className = 'today';
+
+  var cta = document.getElementById('trackCta');
+  cta.textContent = 'Save ' + inr(p.amt) + ' now';
+
+  if(state.mode === 'low'){
+    card.classList.add('warn');
+    cta.textContent = 'Save ' + inr(p.amt*0.5) + ' now';
+    tag.textContent = 'ADJUSTED FOR THIS WEEK';
+    msg.textContent = inr(p.amt*0.5) + ' today is enough.';
+    sub.textContent = 'Your contributions have been smaller for 5 days, so the ask is lower. '
+                    + 'The shortfall moves to later weeks — the target and the date have not changed.';
+  } else if(state.mode === 'payday'){
+    card.classList.add('warn');
+    tag.textContent = 'A BETTER FIT?';
+    msg.textContent = 'Switch to ' + inr(p.amt*30) + '/month?';
+    sub.textContent = 'You save most in the first week after payday and rarely mid-month. '
+                    + 'Monthly may suit you better. Nothing changes unless you confirm.';
+  } else {
+    tag.textContent = 'ON TRACK';
+    msg.textContent = inr(p.amt) + ' today keeps you on track.';
+    sub.textContent = 'Same as your usual. Nothing has changed this week.';
+  }
+}
+
+/* ---------------- recovery ---------------- */
+function rec(i, el){
+  document.querySelectorAll('.opt').forEach(function(x){ x.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+
+/* ---------------- demo scenarios ---------------- */
+function scenario(m){
+  state.mode = m;
+  if(m === 'missed'){ go('s-recover'); return; }
+  renderTrack();
+  go('s-track');
+}
+
+/* ---------------- nav ---------------- */
+function go(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('on'); });
+  document.getElementById(id).classList.add('on');
+  document.getElementById(id).scrollTop = 0;
+}
+
+renderPlan();
+</script>
+</body>
+</html>
